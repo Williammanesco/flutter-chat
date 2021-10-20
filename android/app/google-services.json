@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "564333392636",
+    "project_id": "m-chat-f588a",
+    "storage_bucket": "m-chat-f588a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:564333392636:android:2cdb3361e68d0419071d79",
+        "android_client_info": {
+          "package_name": "com.example.m_chat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "564333392636-57qs7s10f07j9mpe6chvvpjs76a4vj6r.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAewC7lj5qYJGc0Sbaf-CQyJjdxxYilGMU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "564333392636-57qs7s10f07j9mpe6chvvpjs76a4vj6r.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
