@@ -13,6 +13,10 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Alini'),
+        backgroundColor: kPrimaryColor,
+      ),
       resizeToAvoidBottomInset: true,
       body: Container(
         width: MediaQuery.of(context).size.width,
@@ -20,7 +24,7 @@ class _ChatPageState extends State<ChatPage> {
         child: Column(children: <Widget>[
           Expanded(
               child: Padding(
-            padding: const EdgeInsets.only(top: 30),
+            padding: const EdgeInsets.only(top: 10),
             child: _chatHistory(),
           )),
           Row(
