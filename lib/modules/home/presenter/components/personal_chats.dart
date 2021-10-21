@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_modular/flutter_modular.dart';
 class PersonalChats extends StatelessWidget {
   const PersonalChats({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // print('passa');
+
+    // FirebaseFirestore firestore = FirebaseFirestore.instance;
+    // var ref = firestore.collection('chat1');
+    // ref.add({'aa': 'teste_doc'});
+
     return Container(
       child: Column(
         children: [
@@ -26,7 +33,12 @@ class PersonalChats extends StatelessWidget {
                 child: ListView(
                   scrollDirection: Axis.vertical,
                   children: [
-                    _cardChat(),
+                    GestureDetector(
+                      child: _cardChat(),
+                      onTap: () {
+                        Modular.to.pushNamed('/home/chat');
+                      },
+                    ),
                     _cardChat(),
                     _cardChat(),
                     _cardChat(),
