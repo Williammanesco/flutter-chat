@@ -14,22 +14,14 @@ class FirebaseLoginWithGoogle implements LoginWithGoogleRepository {
 
     User? user = FirebaseAuth.instance.currentUser;
 
-    // if (user != null) {
-    //   Modular.of(context).pushReplacement(
-    //     MaterialPageRoute(
-    //       builder: (context) => UserInfoScreen(
-    //         user: user,
-    //       ),
-    //     ),
-    //   );
-    // }
-
     return firebaseApp;
   }
 
   @override
   Future<Either<Failure, ChatUser>> login() async {
+    await FirebaseLoginWithGoogle.initializeFirebase();
     User? user = await _signInWithGoogle();
+    print(user);
 
     if (user != null) {
       return Right(new ChatUser(name: user.displayName ?? 'Indefinido', email:  user.email ?? 'Indefinido'));
@@ -54,7 +46,7 @@ class FirebaseLoginWithGoogle implements LoginWithGoogleRepository {
         print(e);
       }
     } else {
-      final GoogleSignIn googleSignIn = GoogleSignIn();
+      final GoogleSignIn googleSignIn = GoogleSignIn(scopes: ['email']);
 
       final GoogleSignInAccount? googleSignInAccount =
           await googleSignIn.signIn();
