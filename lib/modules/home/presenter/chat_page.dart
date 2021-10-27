@@ -27,14 +27,12 @@ class _ChatPageState extends State<ChatPage> {
   String messageText = '';
 
   TextEditingController? _controller;
-  ScrollController? _scrollController;
+  ScrollController _scrollController = new ScrollController();
 
   @override
   void initState() {
     super.initState();
     _controller = new TextEditingController(text: messageText);
-    //  _scrollController = new ScrollController(
-    //     initialScrollOffset: _scrollController?.position.maxScrollExtent);
   }
 
   @override
@@ -128,10 +126,8 @@ class _ChatPageState extends State<ChatPage> {
                 });
 
                 _controller!.clear();
-                if (_scrollController != null) {
-                  _scrollController!
-                      .jumpTo(_scrollController!.position.maxScrollExtent);
-                }
+                  _scrollController
+                    .jumpTo(_scrollController.position.maxScrollExtent);
               },
             )
           ],
