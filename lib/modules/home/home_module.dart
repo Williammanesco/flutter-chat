@@ -13,6 +13,10 @@ class HomeModule extends Module {
   @override
   List<ModularRoute> get routes => [
     ChildRoute('/', child: (context, args) => HomePage()),
-    ChildRoute('/chat', child: (context, args) => ChatPage()),
+    ChildRoute('/chat',
+            child: (context, args) => ChatPage(
+                  uidChatUser: args.queryParams['uidChatUser'],
+                  name: args.queryParams['name'],
+                )),
   ];
 }

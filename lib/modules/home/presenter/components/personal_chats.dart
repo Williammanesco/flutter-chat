@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -11,12 +9,14 @@ class ChatList {
   String displayName;
   String lastMessageText;
   String lastMessageTime;
+  String uidChatUser;
 
   ChatList(
       {required this.photoUrl,
       required this.displayName,
       required this.lastMessageText,
-      required this.lastMessageTime});
+      required this.lastMessageTime,
+      required this.uidChatUser});
 }
 
 class PersonalChats extends StatefulWidget {
@@ -74,7 +74,8 @@ class _PersonalChatsState extends State<PersonalChats> {
             displayName: user['name'],
             lastMessageText: 'Teste',
             photoUrl: user['photo_url'],
-            lastMessageTime: '20:00'));
+            lastMessageTime: '20:00',
+            uidChatUser: entry.key));
       }
     }
 
@@ -86,9 +87,9 @@ class _PersonalChatsState extends State<PersonalChats> {
       return Center(
         child: Text('Sem conversas...'),
       );
-      
+
     return Container(
-            child: Column(
+      child: Column(
         children: [
           Padding(
             padding: const EdgeInsets.only(left: 13),
@@ -107,12 +108,13 @@ class _PersonalChatsState extends State<PersonalChats> {
                 height: MediaQuery.of(context).size.height,
                 child: ListView(
                   scrollDirection: Axis.vertical,
-                        children: chatList.map((chat) {
+                  children: chatList.map((chat) {
                     return GestureDetector(
                         child: _cardChat(chat),
                         onTap: () {
-                          Modular.to.pushNamed('/home/chat');
-                       });
+                          Modular.to.pushNamed(
+                              '/home/chat?uidChatUser=${chat.uidChatUser}&name=${chat.displayName}');
+                        });
                   }).toList(),
                 ),
               )
@@ -171,5 +173,3 @@ class _PersonalChatsState extends State<PersonalChats> {
     );
   }
 }
-
-
