@@ -1,4 +1,5 @@
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:get/get.dart';
 import 'package:m_chat/modules/auth/data/services/login_with_google.dart';
 import 'package:m_chat/modules/auth/infra/firebase/login_with_google.dart';
 import 'package:m_chat/modules/auth/presentation/login_controller.dart';
@@ -9,7 +10,7 @@ class AuthModule extends Module {
   List<Bind> get binds => [
         Bind.factory((i) => FirebaseLoginWithGoogle()),
         Bind.factory((i) => LoginWithGoogleService(i())),
-        Bind.singleton<LoginController>((i) => LoginController(i())),
+        Bind.singleton<LoginController>((i) => Get.put(LoginController(i()))),
       ];
 
   @override

@@ -18,7 +18,7 @@ class LoginWithGoogleService implements LoginWithGoogle {
       return Left(LoginError(message: 'Falha no login'));
     }
 
-    return Right(result.right);
+    return Right(result.right());
   }
 
 }

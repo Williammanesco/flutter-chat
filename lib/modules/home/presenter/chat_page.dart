@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:m_chat/shared/constants.dart';
+import 'package:flutter_modular/flutter_modular.dart';
+import 'package:get/get.dart';
+import 'package:m_chat/modules/auth/presentation/login_controller.dart';
 import 'package:m_chat/shared/constants.dart';
 
 class ChatPage extends StatefulWidget {
@@ -10,6 +12,14 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
+  @override
+  void initState() {
+    super.initState();
+
+    var controller = Modular.get<LoginController>();
+    print(controller.chatUser!.uid);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,7 +64,11 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _chatHistory() {
     return Column(
-      children: [_rightMessage(), _leftMessage(), _rightMessage()],
+      children: [
+        _rightMessage(),
+        _leftMessage(),
+        _rightMessage(),
+      ],
     );
   }
 

@@ -27,7 +27,8 @@ class FirebaseLoginWithGoogle implements LoginWithGoogleRepository {
       return Right(new ChatUser(
           name: user.displayName ?? 'Indefinido',
           email: user.email ?? 'Indefinido',
-          uid: user.uid));
+          uid: user.uid,
+          photoUrl: user.photoURL ?? ''));
     } else {
       return Left(LoginError(message: 'Erro ao logar com google.'));
     }

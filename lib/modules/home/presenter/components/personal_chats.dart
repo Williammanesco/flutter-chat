@@ -1,19 +1,94 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-class PersonalChats extends StatelessWidget {
+import 'package:m_chat/modules/auth/domain/entities/user.dart';
+import 'package:m_chat/modules/auth/presentation/login_controller.dart';
+
+class ChatList {
+  String photoUrl;
+  String displayName;
+  String lastMessageText;
+  String lastMessageTime;
+
+  ChatList(
+      {required this.photoUrl,
+      required this.displayName,
+      required this.lastMessageText,
+      required this.lastMessageTime});
+}
+
+class PersonalChats extends StatefulWidget {
   const PersonalChats({Key? key}) : super(key: key);
 
   @override
+  State<PersonalChats> createState() => _PersonalChatsState();
+}
+
+class _PersonalChatsState extends State<PersonalChats> {
+  ChatUser? user = Modular.get<LoginController>().chatUser;
+  Stream<DocumentSnapshot<Map<String, dynamic>>>? documentStream;
+  CollectionReference users = FirebaseFirestore.instance.collection('users');
+
+  _PersonalChatsState() {
+    documentStream = FirebaseFirestore.instance
+        .collection('chats')
+        .doc(user!.uid)
+        .snapshots();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // print('passa');
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        stream: documentStream,
+        builder: (BuildContext context,
+            AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
+          var data = snapshot.data?.data() ?? null;
 
-    // FirebaseFirestore firestore = FirebaseFirestore.instance;
-    // var ref = firestore.collection('chat1');
-    // ref.add({'aa': 'teste_doc'});
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: Text("Loading"));
+          }
 
+          return FutureBuilder<List<ChatList>>(
+              future: _buildChatInfo(data),
+              builder: (context, AsyncSnapshot<List<ChatList>> snapshot) {
+                return _chatContainer(snapshot.data);
+              });
+        });
+  }
+
+  Future<List<ChatList>> _buildChatInfo(Map<String, dynamic>? data) async {
+    List<ChatList> chatList = [];
+    if (data != null) {
+      for (var entry in data.entries) {
+        var snapshot = await users.doc(entry.key).get();
+
+        if (snapshot.data() == null) {
+          return chatList;
+        }
+
+        Map<String, dynamic> user = snapshot.data() as Map<String, dynamic>;
+
+        chatList.add(ChatList(
+            displayName: user['name'],
+            lastMessageText: 'Teste',
+            photoUrl: user['photo_url'],
+            lastMessageTime: '20:00'));
+      }
+    }
+
+    return chatList;
+  }
+
+  Widget _chatContainer(List<ChatList>? chatList) {
+    if (chatList == null)
+      return Center(
+        child: Text('Sem conversas...'),
+      );
+      
     return Container(
-      child: Column(
+            child: Column(
         children: [
           Padding(
             padding: const EdgeInsets.only(left: 13),
@@ -32,24 +107,13 @@ class PersonalChats extends StatelessWidget {
                 height: MediaQuery.of(context).size.height,
                 child: ListView(
                   scrollDirection: Axis.vertical,
-                  children: [
-                    GestureDetector(
-                      child: _cardChat(),
-                      onTap: () {
-                        Modular.to.pushNamed('/home/chat');
-                      },
-                    ),
-                    _cardChat(),
-                    _cardChat(),
-                    _cardChat(),
-                    _cardChat(),
-                    _cardChat(),
-                    _cardChat(),
-                    _cardChat(),
-                    _cardChat(),
-                    _cardChat(),
-                    _cardChat(),
-                  ],
+                        children: chatList.map((chat) {
+                    return GestureDetector(
+                        child: _cardChat(chat),
+                        onTap: () {
+                          Modular.to.pushNamed('/home/chat');
+                       });
+                  }).toList(),
                 ),
               )
             ],
@@ -59,7 +123,7 @@ class PersonalChats extends StatelessWidget {
     );
   }
 
-  Widget _cardChat() {
+  Widget _cardChat(ChatList chat) {
     return Padding(
       padding: const EdgeInsets.all(12.0),
       child: Container(
@@ -72,7 +136,7 @@ class PersonalChats extends StatelessWidget {
                   padding: const EdgeInsets.all(5.0),
                   child: ClipOval(
                     child: Image.network(
-                      'https://scontent.fmgf7-1.fna.fbcdn.net/v/t1.6435-9/46482389_2264750926909313_8004761326737948672_n.jpg?_nc_cat=100&ccb=1-5&_nc_sid=09cbfe&_nc_eui2=AeFF4vV2fpSgQ_1euFze8GVZS34pWqhasQpLfilaqFqxCjTJ8yHXN9jAxPM4cYEm1pD1L-ctl-pdIu-ruGY6FdZe&_nc_ohc=q_DL1IV97hEAX-oA9Nm&_nc_ht=scontent.fmgf7-1.fna&oh=6cc3802f7e294c68734b64e9b10bb8ac&oe=6196786D',
+                      chat.photoUrl,
                       width: 40,
                       height: 40,
                       alignment: Alignment.topLeft,
@@ -84,19 +148,19 @@ class PersonalChats extends StatelessWidget {
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: Text('Alini',
+                      child: Text(chat.displayName,
                           style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: Text('Alini: te amo'),
+                      child: Text(chat.lastMessageText),
                     ),
                   ],
                 ),
                 Spacer(),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text('20:00'),
+                  child: Text(chat.lastMessageTime),
                 ),
               ],
             ),
@@ -107,3 +171,5 @@ class PersonalChats extends StatelessWidget {
     );
   }
 }
+
+
