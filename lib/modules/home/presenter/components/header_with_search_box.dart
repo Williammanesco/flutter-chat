@@ -6,9 +6,11 @@ class HeaderWithSearchBox extends StatelessWidget {
   const HeaderWithSearchBox({
     Key? key,
     required this.size,
+    required this.name,
   }) : super(key: key);
 
   final Size size;
+  final String name;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +37,7 @@ class HeaderWithSearchBox extends StatelessWidget {
             child: Row(
               children: <Widget>[
                 Text(
-                  'Olá William.',
+                  'Olá $name.',
                   style: Theme.of(context).textTheme.headline5!.copyWith(
                       color: Colors.white, fontWeight: FontWeight.bold),
                 ),

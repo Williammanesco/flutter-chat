@@ -15,7 +15,7 @@ class HomeModule extends Module {
     ChildRoute('/', child: (context, args) => HomePage()),
     ChildRoute('/chat',
             child: (context, args) => ChatPage(
-                  uidChatUser: args.queryParams['uidChatUser'],
+                  chatId: args.queryParams['chatId'],
                   name: args.queryParams['name'],
                 )),
   ];

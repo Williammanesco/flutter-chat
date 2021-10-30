@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:m_chat/modules/auth/domain/entities/user.dart';
@@ -8,14 +9,16 @@ import 'package:m_chat/shared/constants.dart';
 class ChatPage extends StatefulWidget {
   final String? uidChatUser;
   final String? name;
+  final String? chatId;
 
   Stream<DocumentSnapshot<Map<String, dynamic>>>? chatStream;
   ChatUser? user = Modular.get<LoginController>().chatUser;
 
-  ChatPage({Key? key, this.uidChatUser, this.name}) : super(key: key) {
+  ChatPage({Key? key, this.uidChatUser, this.name, this.chatId})
+      : super(key: key) {
     chatStream = FirebaseFirestore.instance
         .collection('chats')
-        .doc(user!.uid)
+        .doc(chatId)
         .snapshots();
   }
 
@@ -27,12 +30,13 @@ class _ChatPageState extends State<ChatPage> {
   String messageText = '';
 
   TextEditingController? _controller;
-  ScrollController _scrollController = new ScrollController();
+  ScrollController? _scrollController;
 
   @override
   void initState() {
     super.initState();
     _controller = new TextEditingController(text: messageText);
+    _scrollController = new ScrollController();
   }
 
   @override
@@ -51,30 +55,31 @@ class _ChatPageState extends State<ChatPage> {
         stream: widget.chatStream,
         builder: (BuildContext context,
             AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
-          var data = snapshot.data?.data() ?? null;
+          List<dynamic>? messages = snapshot.data?.get('messages') ?? null;
 
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: Text("Loading"));
-          }
-
-          if (data == null || data.length == 0)
+          if (messages == null || messages.length == 0)
             return Center(child: Text("Inicie uma conversa"));
 
-          List<dynamic> messages = new Map.fromIterable(
-              data.keys.where((k) => k == widget.uidChatUser),
-              key: (k) => k,
-              value: (k) => data[k])[widget.uidChatUser];
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: Text("Carregando..."));
+          }
 
-          return ListView(
+          var newMessages = List.from(messages.reversed);
+
+          return ListView.builder(
             controller: _scrollController,
-            children: [
-              Column(
-                  children: messages.map((message) {
-                if (message['from'] == widget.uidChatUser)
-                  return _leftMessage(message['message']);
+            itemCount: newMessages.length,
+            dragStartBehavior: DragStartBehavior.down,
+            reverse: true,
+            itemBuilder: (_, index) {
+              var message = newMessages[index];
+
+              if (message['from'] != widget.user?.uid) {
+                return _leftMessage(message['message']);
+              } else {
                 return _rightMessage(message['message']);
-              }).toList())
-            ],
+              }
+            },
           );
         });
   }
@@ -112,11 +117,12 @@ class _ChatPageState extends State<ChatPage> {
               label: Text(''),
               icon: Icon(Icons.send),
               onPressed: () async {
+                print(widget.chatId);
                 await FirebaseFirestore.instance
                     .collection('chats')
-                    .doc(widget.user!.uid)
+                    .doc(widget.chatId)
                     .update({
-                  '${widget.uidChatUser}': FieldValue.arrayUnion([
+                  'messages': FieldValue.arrayUnion([
                     {
                       'from': widget.user!.uid,
                       'message': messageText,
@@ -126,8 +132,9 @@ class _ChatPageState extends State<ChatPage> {
                 });
 
                 _controller!.clear();
-                  _scrollController
-                    .jumpTo(_scrollController.position.maxScrollExtent);
+                if (_scrollController != null) {
+                  _scrollController!.jumpTo(0);
+                } 
               },
             )
           ],

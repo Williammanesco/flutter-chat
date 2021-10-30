@@ -9,14 +9,14 @@ class ChatList {
   String displayName;
   String lastMessageText;
   String lastMessageTime;
-  String uidChatUser;
+  String chatId;
 
   ChatList(
       {required this.photoUrl,
       required this.displayName,
       required this.lastMessageText,
       required this.lastMessageTime,
-      required this.uidChatUser});
+      required this.chatId});
 }
 
 class PersonalChats extends StatefulWidget {
@@ -28,55 +28,63 @@ class PersonalChats extends StatefulWidget {
 
 class _PersonalChatsState extends State<PersonalChats> {
   ChatUser? user = Modular.get<LoginController>().chatUser;
-  Stream<DocumentSnapshot<Map<String, dynamic>>>? documentStream;
+  Stream<QuerySnapshot<Map<String, dynamic>>>? chatsStream;
   CollectionReference users = FirebaseFirestore.instance.collection('users');
 
   _PersonalChatsState() {
-    documentStream = FirebaseFirestore.instance
+    chatsStream = FirebaseFirestore.instance
         .collection('chats')
-        .doc(user!.uid)
+        .where('users', arrayContainsAny: [user!.uid])
         .snapshots();
   }
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-        stream: documentStream,
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: chatsStream,
         builder: (BuildContext context,
-            AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
-          var data = snapshot.data?.data() ?? null;
+            AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
+          var data = snapshot.data ?? null;
 
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: Text("Loading"));
           }
 
+          List<Map<dynamic, dynamic>> usersChat = [];
+          data!.docs.forEach((documentValue) {
+            for (var userId in documentValue.get('users')) {
+              if (userId != user!.uid)
+                usersChat
+                    .add({'userId': userId, 'documentId': documentValue.id});
+            }
+          });
+
           return FutureBuilder<List<ChatList>>(
-              future: _buildChatInfo(data),
+              future: _buildChatInfo(usersChat),
               builder: (context, AsyncSnapshot<List<ChatList>> snapshot) {
                 return _chatContainer(snapshot.data);
               });
         });
   }
 
-  Future<List<ChatList>> _buildChatInfo(Map<String, dynamic>? data) async {
+  Future<List<ChatList>> _buildChatInfo(
+      List<Map<dynamic, dynamic>> usersList) async {
     List<ChatList> chatList = [];
-    if (data != null) {
-      for (var entry in data.entries) {
-        var snapshot = await users.doc(entry.key).get();
+    for (var userId in usersList) {
+      var snapshot = await users.doc(userId['userId']).get();
 
-        if (snapshot.data() == null) {
-          return chatList;
-        }
-
-        Map<String, dynamic> user = snapshot.data() as Map<String, dynamic>;
-
-        chatList.add(ChatList(
-            displayName: user['name'],
-            lastMessageText: 'Teste',
-            photoUrl: user['photo_url'],
-            lastMessageTime: '20:00',
-            uidChatUser: entry.key));
+      if (snapshot.data() == null) {
+        return chatList;
       }
+
+      Map<String, dynamic> user = snapshot.data() as Map<String, dynamic>;
+
+      chatList.add(ChatList(
+          displayName: user['name'],
+          lastMessageText: 'Teste',
+          photoUrl: user['photo_url'],
+          lastMessageTime: '20:00',
+          chatId: userId['documentId'] ?? ''));
     }
 
     return chatList;
@@ -103,6 +111,7 @@ class _PersonalChatsState extends State<PersonalChats> {
           ),
           Row(
             children: [
+
               SizedBox(
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height,
@@ -113,7 +122,7 @@ class _PersonalChatsState extends State<PersonalChats> {
                         child: _cardChat(chat),
                         onTap: () {
                           Modular.to.pushNamed(
-                              '/home/chat?uidChatUser=${chat.uidChatUser}&name=${chat.displayName}');
+                              '/home/chat?chatId=${chat.chatId}&name=${chat.displayName}');
                         });
                   }).toList(),
                 ),
